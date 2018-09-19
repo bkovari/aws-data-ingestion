@@ -20,9 +20,7 @@ public class EMRCluster {
             credentials = new ProfileCredentialsProvider("default").getCredentials();
         } catch (Exception e) {
             throw new AmazonClientException(
-                    "Cannot load the credentials from the credential profiles file. " +
-                    "Please make sure that your credentials file is at the correct " +
-                    "location (C:\\Users\\Bence\\.aws\\credentials), and is in valid format.",
+                    "Cannot load user credentials!",
                     e);
         }
         AmazonElasticMapReduce emr = AmazonElasticMapReduceAsyncClientBuilder.standard()
