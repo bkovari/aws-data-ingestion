@@ -45,7 +45,7 @@ public class EMRCluster {
         
         BootstrapActionConfig ojdbcConnectorSetup = new BootstrapActionConfig()
         		.withName("Oracle JDBC 6.0 Connector Setup for Sqoop")
-        		.withScriptBootstrapAction(new ScriptBootstrapActionConfig().withPath("s3://cluster-tools/ojdbc_setup.sh"));
+        		.withScriptBootstrapAction(new ScriptBootstrapActionConfig().withPath("s3://awsdataingestion/scripts/ojdbc_setup.sh"));
         
        final String COMMAND_RUNNER = "command-runner.jar";
        final String DEBUGGING_COMMAND = "state-pusher-script";
@@ -61,7 +61,7 @@ public class EMRCluster {
        RunJobFlowRequest clusterCreationRequest = new RunJobFlowRequest()
            .withName("MyEMRCluster")
            .withReleaseLabel("emr-5.17.0")
-           .withLogUri("s3://emr-cluster-logger")
+           .withLogUri("s3://awsdataingestion/log")
            .withSteps(enableDebugging)
            .withApplications(instanceApplications)
            .withServiceRole("EMR_DefaultRole")
