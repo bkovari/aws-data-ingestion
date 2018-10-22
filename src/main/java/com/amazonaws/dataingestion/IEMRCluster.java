@@ -1,7 +1,24 @@
 package com.amazonaws.dataingestion;
 
+/**
+ * @author Bence
+ *
+ */
 public interface IEMRCluster {
+	/**
+	 * @param enableDebugging
+	 */
 	public void start(boolean enableDebugging);
+
+	/**
+	 * 
+	 */
 	public void stop();
-	public void addClusterJob();
+
+	/**
+	 * @param jobName
+	 * @param path
+	 */
+	public void addJob(String jobName, String path);
+
 }

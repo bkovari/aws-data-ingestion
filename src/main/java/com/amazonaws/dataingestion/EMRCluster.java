@@ -1,7 +1,6 @@
 package com.amazonaws.dataingestion;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.amazonaws.AmazonClientException;
@@ -11,8 +10,14 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduce;
 import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduceAsyncClientBuilder;
 import com.amazonaws.services.elasticmapreduce.model.ActionOnFailure;
+import com.amazonaws.services.elasticmapreduce.model.AddJobFlowStepsRequest;
+import com.amazonaws.services.elasticmapreduce.model.AddJobFlowStepsResult;
+import com.amazonaws.services.elasticmapreduce.model.AmazonElasticMapReduceException;
 import com.amazonaws.services.elasticmapreduce.model.Application;
 import com.amazonaws.services.elasticmapreduce.model.BootstrapActionConfig;
+import com.amazonaws.services.elasticmapreduce.model.ClusterSummary;
+import com.amazonaws.services.elasticmapreduce.model.DescribeClusterRequest;
+import com.amazonaws.services.elasticmapreduce.model.DescribeClusterResult;
 import com.amazonaws.services.elasticmapreduce.model.HadoopJarStepConfig;
 import com.amazonaws.services.elasticmapreduce.model.InstanceGroupConfig;
 import com.amazonaws.services.elasticmapreduce.model.JobFlowInstancesConfig;
@@ -22,125 +27,202 @@ import com.amazonaws.services.elasticmapreduce.model.ScriptBootstrapActionConfig
 import com.amazonaws.services.elasticmapreduce.model.StepConfig;
 import com.amazonaws.services.elasticmapreduce.model.Tag;
 
-public class EMRCluster implements IEMRClusterConfig {
+/**
+ * @author Bence
+ *
+ */
+public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 
-	private String name;
-	private String region;
-	private AWSCredentials credentials;
-	private AmazonElasticMapReduce emrClient;
-	private List<InstanceGroupConfig> instanceGroupConfigs;
-	private List<Application> instanceApplications;
-	private String releaseLabel;
-	private BootstrapActionConfig clusterBootstrapConfig;
-	private RunJobFlowRequest clusterCreationRequest;
-	private RunJobFlowResult clusterCreationResult;
+	private String _name;
+	private String _region;
+	private AWSCredentials _credentials;
+	private AmazonElasticMapReduce _emrClient;
+	private List<InstanceGroupConfig> _instanceGroupConfigs;
+	private List<Application> _instanceApplications;
+	private String _releaseLabel;
+	private BootstrapActionConfig _clusterBootstrapConfig;
+	private RunJobFlowRequest _clusterCreationRequest;
+	private RunJobFlowResult _clusterCreationResult;
+	private AddJobFlowStepsRequest _addJobRequest;
+	private AddJobFlowStepsResult _addJobResult;
 
+	/**
+	 * @param name
+	 * @param region
+	 */
 	public EMRCluster(String name, String region) {
 
-		this.name = name;
-		this.region = region;
+		this._name = name;
+		this._region = region;
 		setCredentials("default");
 		setClient();
 	}
 
+	/**
+	 * @return
+	 */
 	public String getName() {
-		return name;
+		return _name;
 	}
 
+	/**
+	 * @return
+	 */
 	public String getRegion() {
-		return region;
+		return _region;
 	}
 
+	/**
+	 * @return
+	 */
 	public AWSCredentials getCredentials() {
-		return credentials;
+		return _credentials;
 	}
 
+	/**
+	 * @return
+	 */
 	public AmazonElasticMapReduce getEmrClient() {
-		return emrClient;
+		return _emrClient;
 	}
 
+	/**
+	 * @return
+	 */
 	public List<InstanceGroupConfig> getInstanceGroupConfigs() {
-		return instanceGroupConfigs;
+		return _instanceGroupConfigs;
 	}
 
+	/**
+	 * @return
+	 */
 	public List<Application> getInstanceApplications() {
-		return instanceApplications;
+		return _instanceApplications;
 	}
 
+	/**
+	 * @return
+	 */
 	public String getReleaseLabel() {
-		return releaseLabel;
+		return _releaseLabel;
 	}
 
+	/**
+	 * @return
+	 */
 	public BootstrapActionConfig getClusterBootstrapConfig() {
-		return clusterBootstrapConfig;
+		return _clusterBootstrapConfig;
 	}
 
+	/**
+	 * @return
+	 */
 	public RunJobFlowRequest getClusterCreationRequest() {
-		return clusterCreationRequest;
+		return _clusterCreationRequest;
 	}
 
+	/**
+	 * @return
+	 */
 	public RunJobFlowResult getClusterCreationResult() {
-		return clusterCreationResult;
+		return _clusterCreationResult;
 	}
 
+	/**
+	 * @param profileName
+	 */
 	public void setCredentials(String profileName) {
 
 		try {
-			credentials = new ProfileCredentialsProvider(profileName).getCredentials();
+			_credentials = new ProfileCredentialsProvider(profileName).getCredentials();
 		} catch (Exception e) {
 			throw new AmazonClientException("Cannot load user credentials!", e);
 		}
 	}
 
+	/**
+	 * 
+	 */
 	private void setClient() {
 
 		try {
-			emrClient = AmazonElasticMapReduceAsyncClientBuilder.standard()
-					.withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(region).build();
+			_emrClient = AmazonElasticMapReduceAsyncClientBuilder.standard()
+					.withCredentials(new AWSStaticCredentialsProvider(_credentials)).withRegion(_region).build();
 		} catch (Exception e) {
 			throw new AmazonClientException("Cannot create client with credentials and region!");
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.amazonaws.dataingestion.IEMRClusterConfig#setApplications(java.lang.
+	 * String, java.util.List)
+	 */
 	public void setApplications(String releaseLabel, List<String> applications) {
 
-		this.releaseLabel = releaseLabel;
-		instanceApplications = new ArrayList<Application>();
+		this._releaseLabel = releaseLabel;
+		_instanceApplications = new ArrayList<Application>();
 		for (String app : applications) {
-			instanceApplications.add(new Application().withName(app));
+			_instanceApplications.add(new Application().withName(app));
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.amazonaws.dataingestion.IEMRClusterConfig#setBootstrapConfig(java.lang.
+	 * String)
+	 */
 	public void setBootstrapConfig(String s3Path) {
 
-		clusterBootstrapConfig = new BootstrapActionConfig().withName("Bootstrap action before Hadoop starts")
+		_clusterBootstrapConfig = new BootstrapActionConfig().withName("Bootstrap action before Hadoop starts")
 				.withScriptBootstrapAction(new ScriptBootstrapActionConfig().withPath(s3Path));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.amazonaws.dataingestion.IEMRClusterConfig#setMasterNode(java.lang.String)
+	 */
 	public void setMasterNode(String instanceType) {
 
-		if (instanceGroupConfigs == null) {
-			instanceGroupConfigs = new ArrayList<InstanceGroupConfig>();
+		if (_instanceGroupConfigs == null) {
+			_instanceGroupConfigs = new ArrayList<InstanceGroupConfig>();
 		}
-		instanceGroupConfigs.add(new InstanceGroupConfig().withInstanceCount(1).withInstanceRole("MASTER")
+		_instanceGroupConfigs.add(new InstanceGroupConfig().withInstanceCount(1).withInstanceRole("MASTER")
 				.withInstanceType(instanceType).withMarket("ON_DEMAND"));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.amazonaws.dataingestion.IEMRClusterConfig#setCoreNode(java.lang.String,
+	 * java.lang.Integer)
+	 */
 	public void setCoreNode(String instanceType, Integer instanceCount) {
-		if (instanceGroupConfigs == null) {
-			instanceGroupConfigs = new ArrayList<InstanceGroupConfig>();
+		if (_instanceGroupConfigs == null) {
+			_instanceGroupConfigs = new ArrayList<InstanceGroupConfig>();
 		}
-		instanceGroupConfigs.add(new InstanceGroupConfig().withInstanceCount(instanceCount).withInstanceRole("CORE")
+		_instanceGroupConfigs.add(new InstanceGroupConfig().withInstanceCount(instanceCount).withInstanceRole("CORE")
 				.withInstanceType(instanceType).withMarket("ON_DEMAND"));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.amazonaws.dataingestion.IEMRCluster#start(boolean)
+	 */
 	public void start(boolean enableDebugging) {
 
-		clusterCreationRequest = new RunJobFlowRequest().withName(name).withReleaseLabel(releaseLabel)
-				.withLogUri("s3://awsdataingestion/log").withApplications(instanceApplications)
+		_clusterCreationRequest = new RunJobFlowRequest().withName(_name).withReleaseLabel(_releaseLabel)
+				.withLogUri("s3://awsdataingestion/log").withApplications(_instanceApplications)
 				.withServiceRole("EMR_DefaultRole").withJobFlowRole("EMR_EC2_DefaultRole")
-				.withBootstrapActions(clusterBootstrapConfig)
-				.withInstances(new JobFlowInstancesConfig().withInstanceGroups(instanceGroupConfigs)
+				.withBootstrapActions(_clusterBootstrapConfig)
+				.withInstances(new JobFlowInstancesConfig().withInstanceGroups(_instanceGroupConfigs)
 						.withEc2KeyName("MyEC2Master").withKeepJobFlowAliveWhenNoSteps(true))
 				.withTags(new Tag().withKey("EMR").withValue("DataIngestion"));
 
@@ -153,32 +235,80 @@ public class EMRCluster implements IEMRClusterConfig {
 					.withActionOnFailure(ActionOnFailure.TERMINATE_CLUSTER)
 					.withHadoopJarStep(new HadoopJarStepConfig().withJar(COMMAND_RUNNER).withArgs(DEBUGGING_COMMAND));
 
-			clusterCreationRequest = clusterCreationRequest.withSteps(debugging);
+			_clusterCreationRequest = _clusterCreationRequest.withSteps(debugging);
 		}
 
-		System.out.println("Starting cluster: {" + name + "}" + " in region: {" + region + "}");
-		clusterCreationResult = emrClient.runJobFlow(clusterCreationRequest);
-		System.out.println("Request state: " + clusterCreationResult.getSdkResponseMetadata().toString());
+		System.out.println("Starting cluster: {" + _name + "}" + " in region: {" + _region + "}");
+		_clusterCreationResult = _emrClient.runJobFlow(_clusterCreationRequest);
+		System.out.println("Request state: " + _clusterCreationResult.getSdkResponseMetadata().toString());
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.amazonaws.dataingestion.IEMRCluster#stop()
+	 */
 	public void stop() {
-		emrClient.shutdown();
+		_emrClient.shutdown();
 	}
 
-	public void addClusterJob(String path, String args) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.amazonaws.dataingestion.IEMRCluster#addClusterJob(java.lang.String,
+	 * java.lang.String)
+	 */
+	public void addJob(String jobName, String path) {
+
+		String jar = String.format("s3://%s.elasticmapreduce/libs/script-runner/script-runner.jar", _region);
+		StepConfig job = new StepConfig().withName(jobName).withActionOnFailure(ActionOnFailure.CONTINUE)
+				.withHadoopJarStep(new HadoopJarStepConfig().withJar(jar).withArgs(path));
+
+		String jobFlowId = _clusterCreationResult.getJobFlowId();
+		_addJobRequest = new AddJobFlowStepsRequest().withSteps(job).withJobFlowId(jobFlowId);
+
+		System.out.println("Adding job {" + jobName + "} to cluster.. ");
+		_addJobResult = _emrClient.addJobFlowSteps(_addJobRequest);
+		System.out.println("Request state: + " + _addJobResult.getSdkResponseMetadata().toString());
 
 	}
 
-	public static void main(String[] args) {
+	/**
+	 * @return
+	 */
+	public String getState() {
 
-		EMRCluster cluster = new EMRCluster("MyAWSCluster", "us-west-1");
-		cluster.setApplications("emr-5.17.0", Arrays.asList("Hadoop", "Hive", "Hue", "Sqoop", "Oozie"));
-		cluster.setBootstrapConfig("s3://awsdataingestion/scripts/bootstrap.sh");
-		cluster.setMasterNode("m1.large");
-		cluster.setCoreNode("m1.medium", 2);
-		cluster.start(true);
+		try {
+			String jobFlowId = _clusterCreationResult.getJobFlowId();
+			DescribeClusterResult result = _emrClient
+					.describeCluster(new DescribeClusterRequest().withClusterId(jobFlowId));
+			String state = result.getCluster().getStatus().toString();
+			return state;
+		} catch (Exception e) {
+			throw new AmazonElasticMapReduceException("Unable to retrieve cluster status!");
+		}
 
 	}
 
+	/**
+	 * @param name
+	 * @param region
+	 * @return
+	 */
+	public static boolean isClusterRunning(String name, String region) {
+
+		EMRCluster emrCluster = new EMRCluster(name, region);
+		AmazonElasticMapReduce client = emrCluster.getEmrClient();
+		List<ClusterSummary> clusters = client.listClusters().getClusters();
+
+		for (ClusterSummary cluster : clusters) {
+			if (cluster.getName().contains(name) && cluster.getStatus().toString().contains("State: WAITING")) {
+				return true;
+			}
+		}
+
+		return false;
+
+	}
 }
