@@ -1,4 +1,4 @@
-package com.amazonaws.dataingestion;
+package com.amazonaws.batchdataingestion;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.amazonaws.dataingestion;
+package com.amazonaws.batchdataingestion;
 
 /**
  * @author Bence

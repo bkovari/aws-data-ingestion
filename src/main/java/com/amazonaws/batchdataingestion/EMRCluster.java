@@ -1,4 +1,4 @@
-package com.amazonaws.dataingestion;
+package com.amazonaws.batchdataingestion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -219,11 +219,11 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 	public void start(boolean enableDebugging) {
 
 		_clusterCreationRequest = new RunJobFlowRequest().withName(_name).withReleaseLabel(_releaseLabel)
-				.withLogUri("s3://awsdataingestion/log").withApplications(_instanceApplications)
+				.withLogUri("s3://batchdataingestion/log").withApplications(_instanceApplications)
 				.withServiceRole("EMR_DefaultRole").withJobFlowRole("EMR_EC2_DefaultRole")
 				.withBootstrapActions(_clusterBootstrapConfig)
 				.withInstances(new JobFlowInstancesConfig().withInstanceGroups(_instanceGroupConfigs)
-						.withEc2KeyName("MyEC2Master").withKeepJobFlowAliveWhenNoSteps(true))
+						.withEc2KeyName("MyFrankfurtKey").withKeepJobFlowAliveWhenNoSteps(true))
 				.withTags(new Tag().withKey("EMR").withValue("DataIngestion"));
 
 		if (enableDebugging) {
