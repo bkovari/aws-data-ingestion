@@ -52,8 +52,8 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 	 */
 	public EMRCluster(String name, String region) {
 
-		this._name = name;
-		this._region = region;
+		_name = name;
+		_region = region;
 		setCredentials("default");
 		setClient();
 	}
