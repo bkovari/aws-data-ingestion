@@ -2,6 +2,7 @@ package com.amazonaws.streamdataingestion;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -9,8 +10,14 @@ import java.util.Random;
 
 public class StreamingUtils {
 
-	public static void main(String[] args) {
-		System.out.println(generateWebserverLogEntry());
+	public static List<String> generateWebserverLogEntries(int entryCount) {
+
+		List<String> entries = new ArrayList<String>();
+		for (int i = 0; i < entryCount; i++) {
+			entries.add(generateWebserverLogEntry());
+		}
+
+		return entries;
 	}
 
 	public static String generateWebserverLogEntry() {

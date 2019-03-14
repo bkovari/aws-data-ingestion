@@ -1,5 +1,9 @@
 package com.amazonaws.streamdataingestion;
 
+import java.util.List;
+
 public interface IKinesisProducer {
-	public void putRecord(String value);
+	void putRecord(String record);
+
+	void putRecords(List<String> records);
 }
