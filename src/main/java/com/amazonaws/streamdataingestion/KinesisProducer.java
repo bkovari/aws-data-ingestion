@@ -15,11 +15,14 @@ import com.amazonaws.services.acmpca.model.ResourceNotFoundException;
 import com.amazonaws.services.kinesis.AmazonKinesis;
 import com.amazonaws.services.kinesis.AmazonKinesisClientBuilder;
 import com.amazonaws.services.kinesis.model.DescribeStreamRequest;
+import com.amazonaws.services.kinesis.model.ListShardsRequest;
+import com.amazonaws.services.kinesis.model.ListShardsResult;
 import com.amazonaws.services.kinesis.model.PutRecordRequest;
 import com.amazonaws.services.kinesis.model.PutRecordResult;
 import com.amazonaws.services.kinesis.model.PutRecordsRequest;
 import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
 import com.amazonaws.services.kinesis.model.PutRecordsResult;
+import com.amazonaws.services.kinesis.model.Shard;
 import com.amazonaws.services.kinesis.model.StreamDescription;
 
 public class KinesisProducer implements IKinesisProducer {
@@ -29,6 +32,8 @@ public class KinesisProducer implements IKinesisProducer {
 	private AWSCredentials _credentials;
 	private static AmazonKinesis _producerClient;
 	private static String _sequenceNumberOfPreviousRecord;
+	private static String _shardChangeKey;
+	private static String _shardExplicitHashKey;
 	private static Logger _logger = LoggerFactory.getLogger(KinesisProducer.class);
 
 	public KinesisProducer(String region, String name) {
@@ -94,12 +99,12 @@ public class KinesisProducer implements IKinesisProducer {
 	@Override
 	public void putRecord(String record) {
 
-		long createTime = System.currentTimeMillis();
-
 		PutRecordRequest putRecordRequest = new PutRecordRequest();
 		putRecordRequest.setStreamName(_name);
 		putRecordRequest.setData(ByteBuffer.wrap(record.getBytes()));
-		putRecordRequest.setPartitionKey(String.format("partitionKey-%d", createTime));
+		putRecordRequest.setPartitionKey("partitionKey");
+		updateExplicitHashKey();
+		putRecordRequest.setExplicitHashKey(_shardExplicitHashKey);
 
 		if (_sequenceNumberOfPreviousRecord != "") {
 			putRecordRequest.setSequenceNumberForOrdering(_sequenceNumberOfPreviousRecord);
@@ -117,22 +122,41 @@ public class KinesisProducer implements IKinesisProducer {
 	@Override
 	public void putRecords(List<String> records) {
 
-		long createTime = System.currentTimeMillis();
-
 		PutRecordsRequest putRecordsRequest = new PutRecordsRequest();
 		putRecordsRequest.setStreamName(_name);
+		updateExplicitHashKey();
 		List<PutRecordsRequestEntry> putRecordsRequestEntryList = new ArrayList<>();
 		for (String record : records) {
 			PutRecordsRequestEntry putRecordsRequestEntry = new PutRecordsRequestEntry();
 			putRecordsRequestEntry.setData(ByteBuffer.wrap(String.valueOf(record).getBytes()));
-			putRecordsRequestEntry.setPartitionKey(String.format("partitionKey-%d", createTime));
+			putRecordsRequestEntry.setPartitionKey("partitionKey");
+			putRecordsRequestEntry.setExplicitHashKey(_shardExplicitHashKey);
 			putRecordsRequestEntryList.add(putRecordsRequestEntry);
 		}
 		putRecordsRequest.setRecords(putRecordsRequestEntryList);
 		PutRecordsResult putRecordsResult = _producerClient.putRecords(putRecordsRequest);
 
-		// _logger.info("Put records result : {}", putRecordsResult);
+		// _logger.info("Put records result : {}", putRecordsResult.toString());
 
+	}
+
+	public void initShardInfo() {
+
+		ListShardsRequest listShardsRequest = new ListShardsRequest().withStreamName(_name);
+		ListShardsResult listShardsResult = _producerClient.listShards(listShardsRequest);
+		List<Shard> shards = listShardsResult.getShards();
+
+		_shardChangeKey = shards.get(1).getHashKeyRange().getStartingHashKey();
+		_shardExplicitHashKey = "0";
+
+		_logger.info("Shard0 hash ranges {}", shards.get(0).getHashKeyRange());
+		_logger.info("Shard1 hash ranges {}", shards.get(1).getHashKeyRange());
+		_logger.info("Shard change key: {}", _shardChangeKey);
+
+	}
+
+	private void updateExplicitHashKey() {
+		_shardExplicitHashKey = _shardExplicitHashKey == _shardChangeKey ? "0" : _shardChangeKey;
 	}
 
 }

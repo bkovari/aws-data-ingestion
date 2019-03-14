@@ -22,6 +22,7 @@ public class StreamDataIngestion implements Runnable {
 
 		if (KinesisProducer.isStreamExists(_kinesisProducer.getName())) {
 			ScheduledExecutorService ex = Executors.newSingleThreadScheduledExecutor();
+			_kinesisProducer.initShardInfo();
 			ex.scheduleAtFixedRate(_streamDataIngestionApplication, 0, _ingestionInterval, _timeUnit);
 		}
 	}
