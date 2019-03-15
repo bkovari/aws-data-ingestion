@@ -12,7 +12,6 @@ public class EMRClusterFactory {
 	 * @return configured cluster
 	 */
 	public static EMRCluster getConfiguredCluster(String name, String region) {
-
 		EMRCluster cluster = new EMRCluster(name, region);
 		cluster.setApplications("emr-5.17.0", Arrays.asList("Sqoop", "Hadoop", "Hive"));
 		cluster.setBootstrapConfig("s3://batchdataingestion/scripts/bootstrap.sh");

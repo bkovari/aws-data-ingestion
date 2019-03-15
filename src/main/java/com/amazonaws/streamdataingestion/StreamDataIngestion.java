@@ -12,14 +12,14 @@ public class StreamDataIngestion implements Runnable {
 	private static final TimeUnit _timeUnit = TimeUnit.MILLISECONDS;
 
 	private static StreamDataIngestion _streamDataIngestionApplication;
-	private static KinesisProducer _kinesisProducer;
+	private static KinesisProducer _producer;
 
 	public static void main(String[] args) {
 
 		_streamDataIngestionApplication = new StreamDataIngestion();
-		_kinesisProducer = KinesisProducerFactory.getInitializedProducer("eu-central-1", "MyKinesisDataStream");
+		_producer = KinesisProducerFactory.getInitializedProducer("eu-central-1", "MyKinesisDataStream");
 
-		if (KinesisProducer.isStreamExists(_kinesisProducer.getName())) {
+		if (KinesisProducer.isStreamExists(_producer.getName())) {
 			ScheduledExecutorService ex = Executors.newSingleThreadScheduledExecutor();
 			ex.scheduleAtFixedRate(_streamDataIngestionApplication, 0, _ingestionInterval, _timeUnit);
 		}
@@ -28,6 +28,6 @@ public class StreamDataIngestion implements Runnable {
 	@Override
 	public void run() {
 		List<String> records = StreamingUtils.generateWebserverLogEntries(_putRecordsPerSecondCount);
-		_kinesisProducer.putRecords(records);
+		_producer.putRecords(records);
 	}
 }
