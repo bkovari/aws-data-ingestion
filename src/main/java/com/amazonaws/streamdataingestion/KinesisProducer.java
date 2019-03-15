@@ -45,7 +45,21 @@ public class KinesisProducer implements IKinesisProducer {
 	}
 
 	/**
-	 * @param profileName
+	 * @return producer region
+	 */
+	public String getRegion() {
+		return _region;
+	}
+
+	/**
+	 * @return producer stream name
+	 */
+	public String getName() {
+		return _name;
+	}
+
+	/**
+	 * @param profileName AWS credentials profile name
 	 */
 	public void setCredentials(String profileName) {
 
@@ -61,26 +75,33 @@ public class KinesisProducer implements IKinesisProducer {
 				.withCredentials((new AWSStaticCredentialsProvider(_credentials))).withRegion(_region).build();
 	}
 
-	public String getRegion() {
-		return _region;
-	}
-
-	public String getName() {
-		return _name;
-	}
-
+	/**
+	 * @return AWS credentials
+	 */
 	public AWSCredentials getCredentials() {
 		return _credentials;
 	}
 
+	/**
+	 * @param credentials AWS credentials
+	 */
 	public void setCredentials(AWSCredentials credentials) {
 		_credentials = credentials;
 	}
 
+	/**
+	 * @return producer client
+	 */
 	public static AmazonKinesis getProducerClient() {
 		return _producerClient;
 	}
 
+	/**
+	 * Returns whether the stream with specified name exists or not.
+	 * 
+	 * @param streamName stream to be checked
+	 * @return boolean result
+	 */
 	public static boolean isStreamExists(String streamName) {
 
 		DescribeStreamRequest describeStreamRequest = new DescribeStreamRequest().withStreamName(streamName);
@@ -93,7 +114,6 @@ public class KinesisProducer implements IKinesisProducer {
 		}
 
 		return true;
-
 	}
 
 	@Override
@@ -116,7 +136,6 @@ public class KinesisProducer implements IKinesisProducer {
 				putRecordRequest.getPartitionKey(), putRecordResult.getShardId(), putRecordResult.getSequenceNumber());
 
 		_sequenceNumberOfPreviousRecord = putRecordResult.getSequenceNumber();
-
 	}
 
 	@Override
@@ -136,11 +155,15 @@ public class KinesisProducer implements IKinesisProducer {
 		putRecordsRequest.setRecords(putRecordsRequestEntryList);
 		PutRecordsResult putRecordsResult = _producerClient.putRecords(putRecordsRequest);
 
-		// _logger.info("Put records result : {}", putRecordsResult.toString());
+		_logger.info("Put records result : {}", putRecordsResult.toString());
 
 	}
 
-	public void initShardInfo() {
+	/**
+	 * Initializes explicit hash key for round-robin record distribution in case of
+	 * 2 shards.
+	 */
+	public void initExplicitHashKey() {
 
 		ListShardsRequest listShardsRequest = new ListShardsRequest().withStreamName(_name);
 		ListShardsResult listShardsResult = _producerClient.listShards(listShardsRequest);
@@ -149,10 +172,9 @@ public class KinesisProducer implements IKinesisProducer {
 		_shardChangeKey = shards.get(1).getHashKeyRange().getStartingHashKey();
 		_shardExplicitHashKey = "0";
 
-		_logger.info("Shard0 hash ranges {}", shards.get(0).getHashKeyRange());
-		_logger.info("Shard1 hash ranges {}", shards.get(1).getHashKeyRange());
+		_logger.info("Shard0 hash ranges: {}", shards.get(0).getHashKeyRange());
+		_logger.info("Shard1 hash ranges: {}", shards.get(1).getHashKeyRange());
 		_logger.info("Shard change key: {}", _shardChangeKey);
-
 	}
 
 	private void updateExplicitHashKey() {

@@ -47,8 +47,8 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 	private AddJobFlowStepsResult _addJobResult;
 
 	/**
-	 * @param name
-	 * @param region
+	 * @param name   cluster name
+	 * @param region cluster region
 	 */
 	public EMRCluster(String name, String region) {
 
@@ -59,77 +59,77 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 	}
 
 	/**
-	 * @return
+	 * @return cluster name
 	 */
 	public String getName() {
 		return _name;
 	}
 
 	/**
-	 * @return
+	 * @return cluster region
 	 */
 	public String getRegion() {
 		return _region;
 	}
 
 	/**
-	 * @return
+	 * @return AWS credentials
 	 */
 	public AWSCredentials getCredentials() {
 		return _credentials;
 	}
 
 	/**
-	 * @return
+	 * @return EMR client
 	 */
 	public AmazonElasticMapReduce getEmrClient() {
 		return _emrClient;
 	}
 
 	/**
-	 * @return
+	 * @return instance group configurations
 	 */
 	public List<InstanceGroupConfig> getInstanceGroupConfigs() {
 		return _instanceGroupConfigs;
 	}
 
 	/**
-	 * @return
+	 * @return list of applications installed on claster
 	 */
 	public List<Application> getInstanceApplications() {
 		return _instanceApplications;
 	}
 
 	/**
-	 * @return
+	 * @return EMR cluster release label
 	 */
 	public String getReleaseLabel() {
 		return _releaseLabel;
 	}
 
 	/**
-	 * @return
+	 * @return bootstrap config of cluster
 	 */
 	public BootstrapActionConfig getClusterBootstrapConfig() {
 		return _clusterBootstrapConfig;
 	}
 
 	/**
-	 * @return
+	 * @return request of cluster creation
 	 */
 	public RunJobFlowRequest getClusterCreationRequest() {
 		return _clusterCreationRequest;
 	}
 
 	/**
-	 * @return
+	 * @return result of cluster creation
 	 */
 	public RunJobFlowResult getClusterCreationResult() {
 		return _clusterCreationResult;
 	}
 
 	/**
-	 * @param profileName
+	 * @param profileName AWS credentials profile name
 	 */
 	public void setCredentials(String profileName) {
 
@@ -140,9 +140,6 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 		}
 	}
 
-	/**
-	 * 
-	 */
 	private void setClient() {
 
 		try {
@@ -153,12 +150,6 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.amazonaws.dataingestion.IEMRClusterConfig#setApplications(java.lang.
-	 * String, java.util.List)
-	 */
 	public void setApplications(String releaseLabel, List<String> applications) {
 
 		this._releaseLabel = releaseLabel;
@@ -168,25 +159,12 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.amazonaws.dataingestion.IEMRClusterConfig#setBootstrapConfig(java.lang.
-	 * String)
-	 */
 	public void setBootstrapConfig(String s3Path) {
 
 		_clusterBootstrapConfig = new BootstrapActionConfig().withName("Bootstrap action before Hadoop starts")
 				.withScriptBootstrapAction(new ScriptBootstrapActionConfig().withPath(s3Path));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.amazonaws.dataingestion.IEMRClusterConfig#setMasterNode(java.lang.String)
-	 */
 	public void setMasterNode(String instanceType) {
 
 		if (_instanceGroupConfigs == null) {
@@ -196,13 +174,6 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 				.withInstanceType(instanceType).withMarket("ON_DEMAND"));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.amazonaws.dataingestion.IEMRClusterConfig#setCoreNode(java.lang.String,
-	 * java.lang.Integer)
-	 */
 	public void setCoreNode(String instanceType, Integer instanceCount) {
 		if (_instanceGroupConfigs == null) {
 			_instanceGroupConfigs = new ArrayList<InstanceGroupConfig>();
@@ -211,11 +182,6 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 				.withInstanceType(instanceType).withMarket("ON_DEMAND"));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.amazonaws.dataingestion.IEMRCluster#start(boolean)
-	 */
 	public void start(boolean enableDebugging) {
 
 		_clusterCreationRequest = new RunJobFlowRequest().withName(_name).withReleaseLabel(_releaseLabel)
@@ -237,28 +203,15 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 
 			_clusterCreationRequest = _clusterCreationRequest.withSteps(debugging);
 		}
-
 		System.out.println("Starting cluster: {" + _name + "}" + " in region: {" + _region + "}");
 		_clusterCreationResult = _emrClient.runJobFlow(_clusterCreationRequest);
 		System.out.println("Request state: " + _clusterCreationResult.getSdkResponseMetadata().toString());
-
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.amazonaws.dataingestion.IEMRCluster#stop()
-	 */
 	public void stop() {
 		_emrClient.shutdown();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.amazonaws.dataingestion.IEMRCluster#addClusterJob(java.lang.String,
-	 * java.lang.String)
-	 */
 	public void addJob(String jobName, String path) {
 
 		String jar = String.format("s3://%s.elasticmapreduce/libs/script-runner/script-runner.jar", _region);
@@ -271,11 +224,10 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 		System.out.println("Adding job {" + jobName + "} to cluster.. ");
 		_addJobResult = _emrClient.addJobFlowSteps(_addJobRequest);
 		System.out.println("Request state: + " + _addJobResult.getSdkResponseMetadata().toString());
-
 	}
 
 	/**
-	 * @return
+	 * @return cluster state
 	 */
 	public String getState() {
 
@@ -288,13 +240,14 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 		} catch (Exception e) {
 			throw new AmazonElasticMapReduceException("Unable to retrieve cluster status!");
 		}
-
 	}
 
 	/**
-	 * @param name
-	 * @param region
-	 * @return
+	 * Returns whether the cluster with name and region is running or not.
+	 * 
+	 * @param name   cluster name
+	 * @param region cluster region
+	 * @return boolean result
 	 */
 	public static boolean isClusterRunning(String name, String region) {
 
@@ -307,8 +260,6 @@ public class EMRCluster implements IEMRClusterConfig, IEMRCluster {
 				return true;
 			}
 		}
-
 		return false;
-
 	}
 }

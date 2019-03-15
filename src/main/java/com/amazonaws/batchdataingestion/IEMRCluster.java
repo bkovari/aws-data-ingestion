@@ -1,23 +1,19 @@
 package com.amazonaws.batchdataingestion;
 
-/**
- * @author Bence
- *
- */
 public interface IEMRCluster {
 	/**
-	 * @param enableDebugging
+	 * @param enableDebugging enable debugging for EMR cluster
 	 */
 	public void start(boolean enableDebugging);
 
 	/**
-	 * 
+	 * Shutdown EMR cluster.
 	 */
 	public void stop();
 
 	/**
-	 * @param jobName
-	 * @param path
+	 * @param jobName bash script added as job to be run
+	 * @param path    S3 path to the job script
 	 */
 	public void addJob(String jobName, String path);
 

@@ -10,16 +10,26 @@ import java.util.Random;
 
 public class StreamingUtils {
 
+	/**
+	 * Generates web server log entries.
+	 * 
+	 * @param entryCount log entry count
+	 * @return list of log entries with specified size
+	 */
 	public static List<String> generateWebserverLogEntries(int entryCount) {
 
 		List<String> entries = new ArrayList<String>();
 		for (int i = 0; i < entryCount; i++) {
 			entries.add(generateWebserverLogEntry());
 		}
-
 		return entries;
 	}
 
+	/**
+	 * Generates web server log entry.
+	 * 
+	 * @return web server log entry.
+	 */
 	public static String generateWebserverLogEntry() {
 
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
