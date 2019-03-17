@@ -54,6 +54,6 @@ public class StreamingUtils {
 		List<String> agentBrowsers = Arrays.asList("Mozilla/4.0", "Mozilla/3.0", "Chrome", "Internet Explorer 11");
 		String agentBrowser = agentBrowsers.get(r.nextInt(agentBrowsers.size()));
 
-		return String.format("%s\t%s\t%s\t%d\t%s\n", currentDate, ip, request, httpAnswer, agentBrowser);
+		return String.format("%s\t%s\t%s\t%d\t%s", currentDate, ip, request, httpAnswer, agentBrowser);
 	}
 }
