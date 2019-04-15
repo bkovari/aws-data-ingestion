@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 public class StreamDataIngestion implements Runnable {
 
-	private static final int _putRecordsPerSecondCount = 500;
+	private static final int _putRecordsCount = 500;
 	private static final int _ingestionInterval = 500;
 	private static final TimeUnit _timeUnit = TimeUnit.MILLISECONDS;
 
@@ -27,7 +27,7 @@ public class StreamDataIngestion implements Runnable {
 
 	@Override
 	public void run() {
-		List<String> records = StreamingUtils.generateWebserverLogEntries(_putRecordsPerSecondCount);
+		List<String> records = StreamingUtils.generateWebserverLogEntries(_putRecordsCount);
 		_producer.putRecords(records);
 	}
 }
